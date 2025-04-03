@@ -59,16 +59,16 @@ def AddSegment(g, nameOriginNode, nameDestinationNode):
 
 def ReadNode(g):
     try:
-        with open("Nodes.txt", "r") as F:  # Obrir el fitxer per lectura
-            linea = F.readline()  # Llegir la primera línia
+        with open("Nodes.txt", "r") as F:  
+            linea = F.readline() 
             while linea != "":
-                elementos = linea.split()  # Separar la línia en parts (per espais)
-                if len(elementos) == 3:  # Comprovem que hi ha tres elements (nom, x, y)
+                elementos = linea.split()  
+                if len(elementos) == 3: 
                     nom = elementos[0]
-                    x = float(elementos[1])  # Convertir a flotant
-                    y = float(elementos[2])  # Convertir a flotant
-                    g.nodes.append(Node(nom, x, y))  # Afegir el node al gràfic
-                linea = F.readline()  # Llegir la següent línia
+                    x = float(elementos[1]) 
+                    y = float(elementos[2])  
+                    g.nodes.append(Node(nom, x, y))  
+                linea = F.readline()  
     except FileNotFoundError:
         print("ERROR: No es pot obrir el fitxer 'Nodes.txt'.")
     except Exception as e:

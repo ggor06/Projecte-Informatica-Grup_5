@@ -4,10 +4,7 @@ from node import Node, AddNeighbor, distance
 import matplotlib.pyplot as plt
 
 def CreateGraph_1():
-    G = Graph()  # Creem el graf correctament
-    print("📌 Creant nodes...")
-
-    # Afegim els nodes
+    G = Graph()
     AddNode(G, Node("A", 1, 20))
     AddNode(G, Node("B", 8, 17))
     AddNode(G, Node("C", 15, 20))
@@ -20,11 +17,6 @@ def CreateGraph_1():
     AddNode(G, Node("J", 13, 5))
     AddNode(G, Node("K", 3, 15))
     AddNode(G, Node("L", 4, 10))
-
-    print("📌 Nodes afegits:", [n.name for n in G.nodes])
-
-    # Afegim els segments (ara correctament)
-    print("📌 Afegint segments...")
     AddSegment(G, "A", "B")
     AddSegment(G, "A", "E")
     AddSegment(G, "A", "K")
@@ -50,21 +42,16 @@ def CreateGraph_1():
     AddSegment(G, "K", "L")
     AddSegment(G, "L", "K")
     AddSegment(G, "L", "F")
+    return G  
 
-    print("📌 Segments afegits:", [(s.o_node.name, s.d_node.name) for s in G.segments])
-
-    return G  # Tornem el graf correctament
-
-# Prova del graf
-print("🔄 Probant el graf...")
+print("Probando el grafo...")
 G = CreateGraph_1()
 
 Plot(G)
 PlotNode(G, "C")
 
-# Prova de GetClosest
 n = GetClosest(G, 15, 5)
-print("📌 Node més proper a (15,5):", n.name)  # Ha de ser J
+print("📌 Node més proper a (15,5):", n.name)  # J
 
 n = GetClosest(G, 8, 19)
-print("📌 Node més proper a (8,19):", n.name)  # Ha de ser B
+print("📌 Node més proper a (8,19):", n.name)  # B
