@@ -4,17 +4,11 @@ from node import Node, AddNeighbor, distance
 import matplotlib.pyplot as plt
 
 def CreateGraph_1():
-    G = Graph()  # Creem el graf correctament
-    print("📌 Creant nodes...")
+    G = Graph() 
 
     # Afegim els nodes
     
     ReadNode(G)
-
-    print("📌 Nodes afegits:", [n.name for n in G.nodes])
-
-    # Afegim els segments (ara correctament)
-    print("📌 Afegint segments...")
     AddSegment(G, "A", "B")
     AddSegment(G, "A", "E")
     AddSegment(G, "A", "K")
@@ -41,12 +35,8 @@ def CreateGraph_1():
     AddSegment(G, "L", "K")
     AddSegment(G, "L", "F")
 
-    print("📌 Segments afegits:", [(s.o_node.name, s.d_node.name) for s in G.segments])
+    return G 
 
-    return G  # Tornem el graf correctament
-
-# Prova del graf
-print("🔄 Probant el graf...")
 G = CreateGraph_1()
 
 Plot(G)
@@ -54,7 +44,7 @@ PlotNode(G, "C")
 
 # Prova de GetClosest
 n = GetClosest(G, 15, 5)
-print("📌 Node més proper a (15,5):", n.name)  # Ha de ser J
+print(" Nodo más cercano a (15,5):", n.name)  # Ha de ser J
 
 n = GetClosest(G, 8, 19)
-print("📌 Node més proper a (8,19):", n.name)  # Ha de ser B
+print(" Npdp mas cercano a (8,19):", n.name)  # Ha de ser B

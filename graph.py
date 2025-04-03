@@ -89,9 +89,6 @@ def GetClosest(g, x, y):
     return closest_node
 
 def Plot(g):
-    print("Graph")
-    print("Segments al graf:", [(s.o_node.name, s.d_node.name) for s in g.segments])
-
     #llista de nodes
     for node in g.nodes:
         plt.plot(node.x, node.y, 'o', color='red', markersize=5)
@@ -109,7 +106,6 @@ def Plot(g):
     plt.show()
 
 def PlotNode(g, nameOrigin):
-    print("Node")
 
     # Busquem el node amb el nom donat i si no el troba et retorna false
     origin_node = None
