@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 from segment import Segment
 from node import AddNeighbor, Node
+import tkinter as tk
 #Creació de la classe Graph
 class Graph:
     def __init__(self):
@@ -96,28 +97,29 @@ def GetClosest(g, x, y):
             closest_node=n  # I també el node més proper
     
     return closest_node # Retornem el node més proper
-
+# Per suggerencia de GPT hem canviat plt.text per a un que sigui ax.text, així quan en la funció es cridada per un altra per posarla en la UI no crea un altre plot sinó que surt en la UI
 # Visualitza el graf complet (nodes i segments)
-def Plot(g):
+def Plot(g, ax):
     #llista de nodes
     for node in g.nodes:
-        plt.plot(node.x, node.y, 'o', color='red', markersize=5)    # Dibuixem el node com un punt vermell
-        plt.text(node.x + 0.5, node.y + 0.5, node.name, color='black', weight='bold', fontsize=6)   # Etiqueta amb el nom
+        ax.plot(node.x, node.y, 'o', color='red', markersize=5)    # Dibuixem el node com un punt vermell
+        ax.text(node.x + 0.5, node.y + 0.5, node.name, color='black', weight='bold', fontsize=6)   # Etiqueta amb el nom
     #llista de segments
     for segment in g.segments:
-        plt.plot([segment.o_node.x, segment.d_node.x], [segment.o_node.y, segment.d_node.y], color='blue', linewidth=1) # Dibuixem la línia entre nodes
+        ax.plot([segment.o_node.x, segment.d_node.x], [segment.o_node.y, segment.d_node.y], color='blue', linewidth=1) # Dibuixem la línia entre nodes
 
     #Punt mig
     for segment in g.segments:
         mid_x=(segment.o_node.x+segment.d_node.x)/2
         mid_y=(segment.o_node.y+segment.d_node.y)/2
-        plt.text(mid_x, mid_y, segment.cost, color='purple', fontsize=5)
+        ax.text(mid_x, mid_y, segment.cost, color='purple', fontsize=5)
 
-    plt.show()
-
-def PlotNode(g, nameOrigin):
-
+def PlotNode(g, nameOrigin, ax):
+    
     # Busquem el node amb el nom donat i si no el troba et retorna false
+    for node in g.nodes:
+        ax.plot(node.x, node.y, 'o', color='gray', markersize=5)
+        
     origin_node = None
     for node in g.nodes:
         if node.name == nameOrigin:
@@ -126,22 +128,21 @@ def PlotNode(g, nameOrigin):
     if origin_node is None:
         return False
 
-    plt.plot(origin_node.x, origin_node.y, 'o', color='blue', markersize=5)
+    ax.plot(origin_node.x, origin_node.y, 'o', color='blue', markersize=5)
     
     for neighbor in origin_node.neighbors:
-        plt.plot(neighbor.x, neighbor.y, 'o', color='green', markersize=5)
+        ax.plot(neighbor.x, neighbor.y, 'o', color='green', markersize=5)
         
     for other_node in g.nodes:
         if other_node != origin_node and other_node not in origin_node.neighbors:
-            plt.plot(other_node.x, other_node.y, 'o', color='gray', markersize=5)
+            ax.plot(other_node.x, other_node.y, 'o', color='gray', markersize=5)
 
     # Dibuixa els segments
     for segment in g.segments:
         if segment.o_node == origin_node:
-            plt.arrow(segment.o_node.x, segment.o_node.y, 
+            ax.arrow(segment.o_node.x, segment.o_node.y, 
                       segment.d_node.x - segment.o_node.x, segment.d_node.y - segment.o_node.y,
                       head_width=0.5, head_length=0.5, fc="blue", ec="blue")
-    plt.show()
     return True
 
 def CreateGraph_1():
@@ -175,5 +176,17 @@ def CreateGraph_1():
     AddSegment(G, "K", "L")
     AddSegment(G, "L", "K")
     AddSegment(G, "L", "F")
-
     return G
+
+def LecturaNodos(g, datos, ax, canvas):
+    vec=datos.split(" ")
+    node = Node(vec[0], float(vec[1]), float(vec[2]))
+    g.nodes.append(node)
+    with open("saved_nodes.txt", "a") as F:
+        F.write(datos.strip() + '\n')
+    #Redibuix del canvas
+    ax.clear()
+    Plot(g, ax)
+    canvas.draw()
+
+
