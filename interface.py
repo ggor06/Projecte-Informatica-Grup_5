@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from graph import Graph, Plot, PlotNode, CreateGraph_1, LecturaNodos, AddNode
+from graph import Graph, Plot, PlotNode, CreateGraph_1, LecturaNodos, LecturaSegmentos, RemoveNode, LoadSavedNodes, LoadSavedSegments
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -9,6 +9,8 @@ from functools import partial
 
 
 G = CreateGraph_1()
+LoadSavedNodes(G, "saved_nodes.txt")
+LoadSavedSegments(G, "saved_segments.txt")
 
 #Actualización de los grafos
 def updateGraphNodes():
@@ -43,6 +45,14 @@ def clickRatolí(event, ax, canvas):
         PlotNode(G, clickedNode, ax)
         canvas.draw()
         
+def RemoveNodeUI():
+    name = entryD.get().strip()
+    if RemoveNode(G, name):
+        ax.clear()
+        Plot(G, ax)
+        canvas.draw()
+    else:
+        messagebox.showerror("Error", f"El node '{name}' no existeix.")
 
 #Ventana principal
 root = tk.Tk()
@@ -91,10 +101,11 @@ button_inputSegment_frame.rowconfigure(0, weight=1)
 button_inputSegment_frame.rowconfigure(1, weight=1)
 button_inputSegment_frame.columnconfigure(0, weight=1)
 #Botones de dentro de la casilla de inputSegment
-button_inputSegment=tk.Button(button_inputSegment_frame, text="Input")
-button_inputSegment.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 entryS=tk.Entry(button_inputSegment_frame)
 entryS.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+button_inputSegment=tk.Button(button_inputSegment_frame, text="Input", command=lambda:LecturaSegmentos(G, entryS.get(), ax, canvas))
+button_inputSegment.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+
 
 #Frame para DeleteNode_Segments
 button_inputDeleteNode_Segments_frame = tk.LabelFrame(root, text="ELIMINAR NODO Y SEGMENTOS")
@@ -104,10 +115,11 @@ button_inputDeleteNode_Segments_frame.rowconfigure(0, weight=1)
 button_inputDeleteNode_Segments_frame.rowconfigure(1, weight=1)
 button_inputDeleteNode_Segments_frame.columnconfigure(0, weight=1)
 #Botones de dentro de la casilla de DeleteNode&Segments
-button_inputDeleteNode_Segments=tk.Button(button_inputDeleteNode_Segments_frame, text="Input")
-button_inputDeleteNode_Segments.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 entryD=tk.Entry(button_inputDeleteNode_Segments_frame)
 entryD.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+button_inputDeleteNode_Segments=tk.Button(button_inputDeleteNode_Segments_frame, text="Input", command=RemoveNodeUI)
+button_inputDeleteNode_Segments.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+
 
 #Frame para los grafos
 graph_frame=tk.LabelFrame(root, text="Grafos")
@@ -123,7 +135,5 @@ canvas=FigureCanvasTkAgg(fig, master=graph_frame)
 canvas.mpl_connect("button_press_event", partial(clickRatolí, ax=ax, canvas=canvas))
 canvas.draw()
 canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
-
-
 
 root.mainloop()

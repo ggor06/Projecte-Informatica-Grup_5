@@ -33,30 +33,34 @@ def AddSegment(g, nameOriginNode, nameDestinationNode):
 # (no None, no una cadena buida, etc.), i després fa la comparació incorrecta per a nameDestinationNode.
 
 #Versió corregida per GPT
-def AddSegment(g, nameOriginNode, nameDestinationNode):
-    # Cerca els nodes pel seu nom
-    origin_node = None 
+def AddSegment(g, nameOriginNode, nameDestinationNode, segmentName=None):
+    # Busca els nodes pel seu nom
+    origin_node = None
     destination_node = None
 
-    # Busquem els nodes pel seu nom
     for node in g.nodes:
-        if node.name == nameOriginNode: 
-            origin_node = node  # Assignem el node d'origen si el nom coincideix
+        if node.name == nameOriginNode:
+            origin_node = node
         if node.name == nameDestinationNode:
-            destination_node = node #Assignem el node de destí si el nom coincideix
+            destination_node = node
 
-    # Comprova si hem trobat els dos nodes(Si algun dels nodes no s'ha trobat, retornem False)
-    if origin_node is None or destination_node is None: 
-        return False  
+    # Si algun no s'ha trobat, sortim
+    if origin_node is None or destination_node is None:
+        return False
 
-    # Crea i afegeix el segment al graf
-    new_segment = Segment(f"Segment_{origin_node.name}_{destination_node.name}", origin_node, destination_node)
-    g.segments.append(new_segment)  # Afegim el segment a la llista del graf
+    # Si no ens han passat el nom, en creem un automàticament
+    if segmentName is None:
+        segmentName = f"Segment_{nameOriginNode}_{nameDestinationNode}"
 
-    # Actualitza la llista de veïns del node d'origen
+    # Crear i afegir el segment
+    new_segment = Segment(segmentName, origin_node, destination_node)
+    g.segments.append(new_segment)
+
+    # Afegim veí
     AddNeighbor(origin_node, destination_node)
 
-    return True # Retorna True si el segment s'ha afegit correctament
+    return True
+
 
 # Llegeix els nodes del fitxer "Nodes.txt"
 def ReadNode(g):
@@ -189,4 +193,77 @@ def LecturaNodos(g, datos, ax, canvas):
     Plot(g, ax)
     canvas.draw()
 
+def LecturaSegmentos(g, datos, ax, canvas):
+    vec=datos.split(" ")
+    origin_node = None
+    destiny_node=None
+    for node in g.nodes:
+        if node.name == vec[1]:
+            origin_node = node
+            break
+    if origin_node is None:
+        return False
+    for node in g.nodes:
+        if node.name == vec[2]:
+            destiny_node=node
+            break
+    if destiny_node is None:
+        return False
+    segment = Segment(vec[0], origin_node, destiny_node)
+    g.segments.append(segment)
+    with open("saved_segments.txt", "a") as F:
+        F.write(datos.strip() + '\n')
+    #Redibuix del canvas
+    ax.clear()
+    Plot(g, ax)
+    canvas.draw()
 
+def RemoveNode(g, name):
+    node_to_remove = None
+    for node in g.nodes:
+        if node.name == name:
+            node_to_remove = node
+            break
+    if node_to_remove is None:
+        return False
+    g.nodes.remove(node_to_remove)
+    g.segments = [s for s in g.segments if s.o_node != node_to_remove and s.d_node != node_to_remove]
+    for node in g.nodes:
+        if node_to_remove in node.neighbors:
+            node.neighbors.remove(node_to_remove)
+    #Aportació de IA
+    # ✅ Actualitzar fitxer saved_nodes.txt
+    with open("saved_nodes.txt", "w") as f:
+        for node in g.nodes:
+            f.write(f"{node.name} {node.x} {node.y}\n")
+
+    # ✅ Actualitzar fitxer saved_segments.txt
+    with open("saved_segments.txt", "w") as f:
+        for seg in g.segments:
+            f.write(f"{seg.name} {seg.o_node.name} {seg.d_node.name}\n")
+
+    return True
+
+
+def LoadSavedNodes(g, path):
+    try:
+        with open(path, "r") as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) == 3:
+                    name, x, y = parts
+                    node = Node(name, float(x), float(y))
+                    AddNode(g, node)
+    except FileNotFoundError:
+        print(f"No hay el rchivo {path}")
+
+def LoadSavedSegments(g, path):
+    try:
+        with open(path, "r") as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) >= 3:
+                    name, origin, dest = parts[:3]
+                    AddSegment(g, origin, dest, name)
+    except FileNotFoundError:
+        print(f"No s'ha trobat el fitxer {path}")
