@@ -63,32 +63,31 @@ def AddSegment(g, nameOriginNode, nameDestinationNode, segmentName=None):
 
 
 # Llegeix els nodes del fitxer "Nodes.txt"
-def ReadNode(g):
+def ReadGraphData(g, filepath):
     try:
-        with open("Nodes.txt", "r") as F:  # Obrim el fitxer en mode lectura
-            linea = F.readline() 
-            while linea != "":
-                elementos = linea.split()  
-                if len(elementos) == 3: 
-                    nom = elementos[0]
-                    x = float(elementos[1]) 
-                    y = float(elementos[2])  
-                    g.nodes.append(Node(nom, x, y))  
-                linea = F.readline()  
+
+        print ("voy a abrir ", filepath)
+        with open(filepath, "r") as f:
+            for line in f:
+                print ("Linea ", line)
+                parts = line.strip().split()
+                if not parts:
+                    continue
+                tag = parts[-1]
+
+                if tag == "N" and len(parts) == 4:
+                    name, x, y = parts[0], float(parts[1]), float(parts[2])
+                    AddNode(g, Node(name, x, y))
+
+                elif tag == "S" and len(parts) == 3:
+                    origin, dest = parts[0], parts[1]
+                    AddSegment(g, origin, dest)
+
     except FileNotFoundError:
-        print("ERROR: No es pot obrir el fitxer 'Nodes.txt'.")
+        print(f"ERROR: No s'ha trobat el fitxer {filepath}")
     except Exception as e:
-        print(f"ERROR: {e}")
-    F.close()
-    
-def ReadSegment():
-    try:
-        with open("Segment", "r") as F:
-            linea = F.readline()
-    except FileNotFoundError:
-        print("ERROR: No es pot obrir el fitxer 'Nodes.txt'.")
-    except Exception as e:
-        print(f"ERROR: {e}")
+        print(f"ERROR llegint dades del graf: {e}")
+
         
 # Troba el node més proper a unes coordenades (x, y)
 def GetClosest(g, x, y):
@@ -116,7 +115,7 @@ def Plot(g, ax):
     for segment in g.segments:
         mid_x=(segment.o_node.x+segment.d_node.x)/2
         mid_y=(segment.o_node.y+segment.d_node.y)/2
-        ax.text(mid_x, mid_y, segment.cost, color='purple', fontsize=5)
+        ax.text(mid_x, mid_y, segment.cost, color='purple', fontsize=15)
 
 def PlotNode(g, nameOrigin, ax):
     
@@ -151,72 +150,62 @@ def PlotNode(g, nameOrigin, ax):
 
 def CreateGraph_1():
     G = Graph() 
-
-    # Afegim els nodes
-    
-    ReadNode(G)
-    AddSegment(G, "A", "B")
-    AddSegment(G, "A", "E")
-    AddSegment(G, "A", "K")
-    AddSegment(G, "B", "A")
-    AddSegment(G, "B", "C")
-    AddSegment(G, "B", "F")
-    AddSegment(G, "B", "K")
-    AddSegment(G, "B", "G")
-    AddSegment(G, "C", "D")
-    AddSegment(G, "C", "G")
-    AddSegment(G, "D", "G")
-    AddSegment(G, "D", "H")
-    AddSegment(G, "D", "I")
-    AddSegment(G, "E", "F")
-    AddSegment(G, "F", "L")
-    AddSegment(G, "G", "B")
-    AddSegment(G, "G", "F")
-    AddSegment(G, "G", "H")
-    AddSegment(G, "I", "D")
-    AddSegment(G, "I", "J")
-    AddSegment(G, "J", "I")
-    AddSegment(G, "K", "A")
-    AddSegment(G, "K", "L")
-    AddSegment(G, "L", "K")
-    AddSegment(G, "L", "F")
+    ReadGraphData(G, "graph_data.txt")
     return G
+
+def SaveGraphToFile(g, path="saved_graph.txt"):
+    with open(path, "w") as f:
+        for node in g.nodes:
+            f.write(f"{node.name} {node.x} {node.y} N\n")
+        for segment in g.segments:
+            f.write(f"{segment.o_node.name} {segment.d_node.name} S\n")
 
 def LecturaNodos(g, datos, ax, canvas):
     vec=datos.split(" ")
     node = Node(vec[0], float(vec[1]), float(vec[2]))
     g.nodes.append(node)
-    with open("saved_nodes.txt", "a") as F:
-        F.write(datos.strip() + '\n')
+    SaveGraphToFile(g)
+
     #Redibuix del canvas
     ax.clear()
     Plot(g, ax)
     canvas.draw()
 
 def LecturaSegmentos(g, datos, ax, canvas):
-    vec=datos.split(" ")
+    vec = datos.strip().split()
+
+    if len(vec) < 3:
+        return False
+
+    segment_name = vec[0]
+    origin_name = vec[1]
+    dest_name = vec[2]
+
     origin_node = None
-    destiny_node=None
+    dest_node = None
+
     for node in g.nodes:
-        if node.name == vec[1]:
+        if node.name == origin_name:
             origin_node = node
-            break
-    if origin_node is None:
+        if node.name == dest_name:
+            dest_node = node
+
+    if origin_node is None or dest_node is None:
         return False
-    for node in g.nodes:
-        if node.name == vec[2]:
-            destiny_node=node
-            break
-    if destiny_node is None:
-        return False
-    segment = Segment(vec[0], origin_node, destiny_node)
+
+    segment = Segment(segment_name, origin_node, dest_node)
     g.segments.append(segment)
-    with open("saved_segments.txt", "a") as F:
-        F.write(datos.strip() + '\n')
-    #Redibuix del canvas
+
+    # Save to file with the "S" tag
+    SaveGraphToFile(g)
+
+
+    # Redibuix del canvas
     ax.clear()
     Plot(g, ax)
     canvas.draw()
+    return True
+
 
 def RemoveNode(g, name):
     node_to_remove = None
@@ -233,14 +222,8 @@ def RemoveNode(g, name):
             node.neighbors.remove(node_to_remove)
     #Aportació de IA
     # ✅ Actualitzar fitxer saved_nodes.txt
-    with open("saved_nodes.txt", "w") as f:
-        for node in g.nodes:
-            f.write(f"{node.name} {node.x} {node.y}\n")
+    SaveGraphToFile(g)
 
-    # ✅ Actualitzar fitxer saved_segments.txt
-    with open("saved_segments.txt", "w") as f:
-        for seg in g.segments:
-            f.write(f"{seg.name} {seg.o_node.name} {seg.d_node.name}\n")
 
     return True
 

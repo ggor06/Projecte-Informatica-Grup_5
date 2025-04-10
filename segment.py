@@ -5,4 +5,4 @@ class Segment:
         self.name=name
         self.o_node=o_node
         self.d_node=d_node
-        self.cost=distance(o_node, d_node)
+        self.cost=round(distance(o_node, d_node),1)

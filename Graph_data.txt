@@ -1,0 +1,37 @@
+A 1 20 N
+B 8 17 N
+C 15 20 N
+D 18 15 N
+E 2 4 N
+F 6 5 N
+G 12 12 N
+H 10 3 N
+I 19 1 N 
+J 13 5 N
+K 3 15 N
+L 4 10 N
+A B S
+A E S
+A K S
+B A S
+B C S
+B F S
+B K S
+B G S
+C D S
+C G S
+D G S
+D H S
+D I S
+E F S
+F L S
+G B S
+G F S
+G H S
+I D S
+I J S
+J I S
+K A S
+K L S
+L K S
+L F S
