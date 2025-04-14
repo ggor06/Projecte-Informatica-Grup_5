@@ -18,15 +18,6 @@ def AddNode(g, n):
         g.nodes.append(n)
         return True
 
-'''l
-def AddSegment(g, nameOriginNode, nameDestinationNode):
-    if nameOriginNode or nameDestinationNode not in g.nodes[0]:
-        return False
-    else:
-        g.segments.append(Segment("Segment", nameOriginNode, nameDestinationNode))
-        AddNeighbor(nameOriginNode, nameDestinationNode)
-        return True
-'''
 #La versió aquesta té un error, de comprovar si els noms dels nodes existeixen al graf. 
 #L'operador or que fem servir no és adequat per aquest cas. 
 # La condició if nameOriginNode or nameDestinationNode not in g.nodes[0]: no funciona bé, ja que s'està comprovant si nameOriginNode és cert 
@@ -64,9 +55,11 @@ def AddSegment(g, nameOriginNode, nameDestinationNode, segmentName=None):
 
 # Llegeix els nodes del fitxer "Nodes.txt"
 def ReadGraphData(g, filepath):
+    g.nodes.clear()
+    g.segments.clear()
     try:
 
-        print ("voy a abrir ", filepath)
+        print ("Vaig a obrir", filepath)
         with open(filepath, "r") as f:
             for line in f:
                 print ("Linea ", line)
@@ -197,15 +190,15 @@ def LecturaSegmentos(g, datos, ax, canvas):
     g.segments.append(segment)
 
     # Save to file with the "S" tag
+    AddNeighbor(origin_node, dest_node)
     SaveGraphToFile(g)
-
+    
 
     # Redibuix del canvas
     ax.clear()
     Plot(g, ax)
     canvas.draw()
     return True
-
 
 def RemoveNode(g, name):
     node_to_remove = None
@@ -220,13 +213,10 @@ def RemoveNode(g, name):
     for node in g.nodes:
         if node_to_remove in node.neighbors:
             node.neighbors.remove(node_to_remove)
-    #Aportació de IA
-    # ✅ Actualitzar fitxer saved_nodes.txt
     SaveGraphToFile(g)
 
 
     return True
-
 
 def LoadSavedNodes(g, path):
     try:

@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from graph import Graph, Plot, PlotNode, CreateGraph_1, LecturaNodos, RemoveNode, ReadGraphData, AddSegment, ReadGraphData, SaveGraphToFile
 import matplotlib.pyplot as plt
+from node import Node
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import math
@@ -9,7 +10,11 @@ from functools import partial
 
 
 G = CreateGraph_1()
-ReadGraphData(G, "Graph_data.txt")
+ReadGraphData(G, "Graph_data_sample.txt")
+#Aportació de GPT per a que no es repeteixin noms de Nodes genèrics
+node_counter = max(
+    [int(n.name[1:]) for n in G.nodes if n.name.startswith("N") and n.name[1:].isdigit()],default=0) + 1
+
 
 
 #Actualización de los grafos
@@ -22,6 +27,8 @@ def updateGraphNeighbors():
     ax.clear()
     PlotNode(G, clickRatolí, ax)
     canvas.draw()
+
+node_counter = 1
 
 #Fet parcialment amb GPT, tutorials de YT i foros(reddit i Stackoverflow) --> És una funció molt complicada de pensar
 def clickRatolí(event, ax, canvas):
@@ -43,6 +50,15 @@ def clickRatolí(event, ax, canvas):
     if clickedNode:
         ax.clear()
         PlotNode(G, clickedNode, ax)
+        canvas.draw()
+    if not clickedNode:
+        global node_counter
+        name = f"N{node_counter}"
+        node_counter += 1
+        node = Node(name, round(x_click,2), round(y_click,2))
+        G.nodes.append(node)
+        ax.clear()
+        Plot(G, ax)  
         canvas.draw()
         
 def RemoveNodeUI():
