@@ -9,3 +9,4 @@ s1=Segment("Segment1", n1, n2)
 s2=Segment("Segment2", n2, n3)
 
 print(round(s1.cost, 1), s2.cost)
+

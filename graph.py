@@ -240,3 +240,4 @@ def LoadSavedSegments(g, path):
                     AddSegment(g, origin, dest, name)
     except FileNotFoundError:
         print(f"No s'ha trobat el fitxer {path}")
+

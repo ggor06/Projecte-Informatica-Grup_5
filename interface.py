@@ -155,13 +155,11 @@ entryD=tk.Entry(button_inputDeleteNode_Segments_frame)
 entryD.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 button_inputDeleteNode_Segments=tk.Button(button_inputDeleteNode_Segments_frame, text="Eliminar", command=RemoveNodeUI)
 button_inputDeleteNode_Segments.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-
 #Frame para los grafos
 graph_frame=tk.LabelFrame(root, text="Gràfic")
 graph_frame.grid(row=0, column=1, rowspan=4, padx=5, pady=5, sticky="nsew")
 graph_frame.columnconfigure(0, weight=1)
 graph_frame.rowconfigure(0, weight=1)
-
 #Frame para cargar y aguardar grafos
 charge_frame=tk.LabelFrame(root, text="Guardar y carregar gràfic")
 charge_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
@@ -181,6 +179,22 @@ entrychargeName.insert(0, "Nom del fitxer")
 entrychargeName.grid(row=2, column=0, padx=5, pady=2, sticky="nsew")
 chargeGraph=tk.Button(charge_frame, text="Carregar gràfic", command=lambda: ReadGraphData(G, entrychargeName.get()))
 chargeGraph.grid(row=3, column=0, padx=5, pady=5, sticky="nsew")
+#Frame para poner nodos para path
+path_frame=tk.LabelFrame(root, text="Camí a seguir")
+path_frame.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
+path_frame.rowconfigure(0, weight=1)
+path_frame.rowconfigure(1, weight=1)
+path_frame.rowconfigure(2, weight=1)
+path_frame.columnconfigure(0, weight=1)
+#Botones para poner nodos de inicio y final
+entryNodeOrigin = tk.Entry(path_frame)
+entryNodeOrigin.insert(0, "Node origen")
+entryNodeOrigin.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
+entryNodeDest = tk.Entry(path_frame)
+entryNodeDest.insert(0, "Node destí")
+entryNodeDest.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
+button_path = tk.Button(path_frame, text="Afegir Camí")
+button_path.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
 
 #Creación de la figura(para poner los grafos)
 fig=Figure(figsize=(5, 4), dpi=100)
@@ -190,6 +204,7 @@ canvas=FigureCanvasTkAgg(fig, master=graph_frame)
 canvas.mpl_connect("button_press_event", partial(clickRatolí, ax=ax, canvas=canvas))
 canvas.draw()
 canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+
 
 
 root.mainloop()
