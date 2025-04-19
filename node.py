@@ -21,4 +21,3 @@ def distance(n1, n2):
     dist_y=n2.y - n1.y
     return math.sqrt(dist_x**2 + dist_y**2)
 
-

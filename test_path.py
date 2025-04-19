@@ -37,4 +37,3 @@ PlotPath(G, path, ax)
 ax.set_title("Test de PlotPath")
 plt.show()
 
-

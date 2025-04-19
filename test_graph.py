@@ -49,3 +49,4 @@ print(" Nodo más cercano a (15,5):", n.name)  # Ha de ser J
 n = GetClosest(G, 8, 19)
 print(" Npdp mas cercano a (8,19):", n.name)  # Ha de ser B
 
+

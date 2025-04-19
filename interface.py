@@ -1,21 +1,19 @@
 import tkinter as tk
 from tkinter import messagebox
-from graph import Graph, Plot, PlotNode, CreateGraph_1, LecturaNodos, RemoveNode, ReadGraphData, AddSegment, ReadGraphData, SaveGraphToFile
+from graph import Graph, Plot, PlotNode, CreateGraph_1, LecturaNodos, RemoveNode, ReadGraphData, AddSegment, ReadGraphData, SaveGraphToFile, FindShortestPath
 import matplotlib.pyplot as plt
 from node import Node
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import math
 from functools import partial
-
+from path import Path, PlotPath
 
 G = CreateGraph_1()
 ReadGraphData(G, "Graph_data_sample.txt")
 #Aportació de GPT per a que no es repeteixin noms de Nodes genèrics
 node_counter = max(
     [int(n.name[1:]) for n in G.nodes if n.name.startswith("N") and n.name[1:].isdigit()],default=0) + 1
-
-
 
 #Actualización de los grafos
 def updateGraphNodes():
@@ -26,6 +24,13 @@ def updateGraphNodes():
 def updateGraphNeighbors():
     ax.clear()
     PlotNode(G, clickRatolí, ax)
+    canvas.draw()
+
+def updatePath():
+    ax.clear()
+    list=FindShortestPath(G, entryNodeOrigin.get(), entryNodeDest.get())
+    path = Path(list)
+    PlotPath(G, path, ax)
     canvas.draw()
 
 node_counter = 1
@@ -81,6 +86,8 @@ def AddSegmentUI():
         canvas.draw()
     else:
         messagebox.showerror("Error", "No s'ha pogut afegir el segment. Comprova els noms dels nodes.")
+
+
 
 #Ventana principal
 root = tk.Tk()
@@ -193,7 +200,7 @@ entryNodeOrigin.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
 entryNodeDest = tk.Entry(path_frame)
 entryNodeDest.insert(0, "Node destí")
 entryNodeDest.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
-button_path = tk.Button(path_frame, text="Afegir Camí")
+button_path = tk.Button(path_frame, text="Afegir Camí", command=lambda: updatePath())
 button_path.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
 
 #Creación de la figura(para poner los grafos)

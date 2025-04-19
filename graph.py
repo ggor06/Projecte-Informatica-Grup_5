@@ -1,8 +1,9 @@
 import math
-import matplotlib.pyplot as plt
 from segment import Segment
-from node import AddNeighbor, Node
+import matplotlib.pyplot as plt
+from node import AddNeighbor, Node, distance
 import tkinter as tk
+from path import Path, AddNode2Path
 #Creació de la classe Graph
 class Graph:
     def __init__(self):
@@ -241,3 +242,30 @@ def LoadSavedSegments(g, path):
     except FileNotFoundError:
         print(f"No s'ha trobat el fitxer {path}")
 
+def FindShortestPath(g, origin, destination):
+    oriNode = None
+    destNode = None
+    for node in g.nodes:
+        if node.name == origin:
+            oriNode = node
+        if node.name == destination:
+            destNode = node
+    if oriNode is None or destNode is None:
+        return None
+
+    cues = [[oriNode]]
+    visitats = []
+    while len(cues) > 0:
+        cami = cues[0]        
+        cues = cues[1:]       
+        actual = cami[-1]
+        if actual == destNode:
+            return cami
+        if actual not in visitats:
+            visitats.append(actual)
+            for i in range(len(actual.neighbors)):
+                vei = actual.neighbors[i]
+                if vei not in visitats:
+                    nou_cami = cami + [vei]
+                    cues.append(nou_cami)
+    return None  
