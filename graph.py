@@ -1,6 +1,9 @@
+Ok, I will add the updated code:
+
 import math
 from segment import Segment
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
 from node import AddNeighbor, Node, distance
 import tkinter as tk
 from path import Path, AddNode2Path
@@ -134,12 +137,16 @@ def PlotNode(g, nameOrigin, ax):
         if other_node != origin_node and other_node not in origin_node.neighbors:
             ax.plot(other_node.x, other_node.y, 'o', color='gray', markersize=5)
 
-    # Dibuixa els segments
+    # Fletxa corregida
     for segment in g.segments:
         if segment.o_node == origin_node:
-            ax.arrow(segment.o_node.x, segment.o_node.y, 
-                      segment.d_node.x - segment.o_node.x, segment.d_node.y - segment.o_node.y,
-                      head_width=0.5, head_length=0.5, fc="blue", ec="blue")
+            arrow = FancyArrowPatch((segment.o_node.x, segment.o_node.y,), (segment.d_node.x, segment.d_node.y), 
+                        arrowstyle='->', 
+                        color='blue',
+                        mutation_scale=10,
+                        linewidth=1)
+            ax.add_patch(arrow)
+
     return True
 
 def CreateGraph_1():
@@ -190,7 +197,7 @@ def LecturaSegmentos(g, datos, ax, canvas):
     segment = Segment(segment_name, origin_node, dest_node)
     g.segments.append(segment)
 
-    # Save to file with the "S" tag
+    # Guarda a l'arxiu
     AddNeighbor(origin_node, dest_node)
     SaveGraphToFile(g)
     
