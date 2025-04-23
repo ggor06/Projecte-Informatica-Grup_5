@@ -1,5 +1,3 @@
-Ok, I will add the updated code:
-
 import math
 from segment import Segment
 import matplotlib.pyplot as plt
