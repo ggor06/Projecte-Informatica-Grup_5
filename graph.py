@@ -1,3 +1,4 @@
+
 import math
 from segment import Segment
 import matplotlib.pyplot as plt
