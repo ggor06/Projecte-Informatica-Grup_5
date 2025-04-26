@@ -1,5 +1,4 @@
-from node import distance
-from segment import Segment
+from navPoint import distance
 from matplotlib.patches import FancyArrowPatch
 import matplotlib.pyplot as plt
 
@@ -49,13 +48,13 @@ def Cost2Node(path, node):
 
 def PlotPath(g, path, ax):
     for node in path.nodes:
-        ax.plot(node.x, node.y, 'o', color='red', markersize=5)
+        ax.plot(node.lat, node.lon, 'o', color='red', markersize=5)
 
     for i in range(len(path.nodes) - 1):
         n1 = path.nodes[i]
         n2 = path.nodes[i + 1]
         arrow = FancyArrowPatch(
-            (n1.x, n1.y), (n2.x, n2.y),
+            (n1.lat, n1.lon), (n2.lat, n2.lon),
             arrowstyle='->',
             color='blue',
             mutation_scale=10,
@@ -64,7 +63,7 @@ def PlotPath(g, path, ax):
         ax.add_patch(arrow)
 
     # Plot all graph nodes in gray
-    for node in g.nodes:
-        ax.plot(node.x, node.y, 'o', color='gray', markersize=5)
-        ax.text(node.x + 0.3, node.y + 0.3, node.name, fontsize=8)
+    for node in g.navPoints:
+        ax.plot(node.lat, node.lon, 'o', color='gray', markersize=5)
+        ax.text(node.lat + 0.3, node.lon + 0.3, node.name, fontsize=8)
 
