@@ -54,59 +54,75 @@ def GetClosest(g, x, y):
     return closest_node 
 
 def Plot(g, ax):
+
     for node in g.navPoints:
-        ax.plot(node.lat, node.lon, 'o', color='red', markersize=5)
-        ax.text(node.lat + 0.5, node.lon + 0.5, node.name, color='black', weight='bold', fontsize=6)
-    
+        ax.plot(node.lon, node.lat, 'o', color='red', markersize=5)
+        ax.text(
+            node.lon + 0.01, node.lat + 0.01,  # tiny offset
+            node.name,
+            fontsize=6,
+            ha='left', va='bottom'
+        )
+
     for segment in g.navSegments:
-        origin_node = None
-        destination_node = None
-        
-        for node in g.navPoints:
-            if node.code == segment.originNumber:
-                origin_node = node
-            
-            if node.code == segment.destinationNumber:
-                destination_node = node
-        
-        if origin_node and destination_node:
-            ax.plot([origin_node.lat, destination_node.lat], [origin_node.lon, destination_node.lon], color='blue', linewidth=1)
-            mid_x = (origin_node.lat + destination_node.lat) / 2
-            mid_y = (origin_node.lon + destination_node.lon) / 2
-            ax.text(mid_x, mid_y, f"{segment.distance:.1f}", color='purple', fontsize=6)
+
+        o = next(n for n in g.navPoints if n.code == segment.originNumber)
+        d = next(n for n in g.navPoints if n.code == segment.destinationNumber)
+
+        ax.plot(
+            [o.lon, d.lon],
+            [o.lat, d.lat],
+            color='blue', linewidth=1
+        )
+
+        mid_lon = 0.5 * (o.lon + d.lon)
+        mid_lat = 0.5 * (o.lat + d.lat)
+        ax.text(
+            mid_lon, mid_lat,
+            f"{segment.distance:.1f}",
+            fontsize=6,
+            ha='center', va='center',
+            color='purple'
+        )
+
+    ax.set_aspect('equal', adjustable='box')
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
 
 def PlotNode(g, originCode, ax):
-    
     for node in g.navPoints:
-        ax.plot(node.lat, node.lon, 'o', color='gray', markersize=5)
-    
-    origin_node = None
-    for node in g.navPoints:
-        if node.code == originCode:
-            origin_node = node
-            break
-    
-    if origin_node is None:
+        ax.plot(node.lon, node.lat, 'o', color='gray', markersize=5)
+
+    origin = next((n for n in g.navPoints if n.code == originCode), None)
+    if origin is None:
         return False
-    
-    ax.plot(origin_node.lat, origin_node.lon, 'o', color='blue', markersize=5)
-    
-    for neighbor in origin_node.neighbors:
-        ax.plot(neighbor.lat, neighbor.lon, 'o', color='green', markersize=5)
-    
-    for segment in g.navSegments:
-        if segment.originNumber == origin_node.code:
-            destination_node = None
-            for node in g.navPoints:
-                if node.code == segment.destinationNumber:
-                    destination_node = node
-                    break
-            if destination_node:
-                arrow = FancyArrowPatch(
-                    (origin_node.lat, origin_node.lon), (destination_node.lat, destination_node.lon),arrowstyle='->',color='blue',mutation_scale=10,linewidth=1)
-                ax.add_patch(arrow)
+
+    ax.plot(origin.lon, origin.lat, 'o', color='blue', markersize=5)
+
+    for nb in origin.neighbors:
+        ax.plot(nb.lon, nb.lat, 'o', color='green', markersize=5)
+
+    for seg in g.navSegments:
+        if seg.originNumber == originCode:
+            dest = next(n for n in g.navPoints if n.code == seg.destinationNumber)
+            arrow = FancyArrowPatch(
+                (origin.lon, origin.lat),
+                (dest.lon,  dest.lat),
+                arrowstyle='->',
+                color='blue',
+                mutation_scale=10,
+                linewidth=1
+            )
+            ax.add_patch(arrow)
+
+    ax.set_aspect('equal', adjustable='box')
+    ax.set_xlabel("Longitud")
+    ax.set_ylabel("Latitud")
 
     return True
+
+
 
 def FindShortestPath(g, originCode, destinationCode):
     oriNode = None
