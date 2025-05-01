@@ -41,38 +41,39 @@ def create_navPoint(lat, lon):
     navpoint_counter += 1
     p = navPoint()
     p.navPoint(code, name, lat, lon)
-    
     return p
 
 #Fet parcialment amb GPT, tutorials de YT i foros(reddit i Stackoverflow) --> És una funció molt complicada de pensar
 def clickRatolí(event, ax, canvas):
     global selected_node_code
-    node_positions = {node.code: (node.lat, node.lon) for node in G.navPoints}
     x_click = event.xdata
     y_click = event.ydata
     if x_click is None or y_click is None:
         return
-    clickedNode = None
-    min_distance = float('inf')
-    for code, (lat, lon) in node_positions.items():
-        dist = math.hypot(lat - x_click, lon - y_click)
-        if dist < 0.5 and dist < min_distance:
-            min_distance = dist
-            clickedNode = code
-    if clickedNode:
-        selected_node_code = clickedNode
+
+    node_positions = {n.code: (n.lon, n.lat) for n in G.navPoints}
+    clicked_code = None
+    min_dist = float("inf")
+
+    for code, (lon, lat) in node_positions.items():
+        dist = math.hypot(lon - x_click, lat - y_click)
+        if dist < 0.5 and dist < min_dist:
+            min_dist = dist
+            clicked_code = code
+
+    if clicked_code is not None:
+        selected_node_code = clicked_code
         updateGraphNeighbors()
-    else:
-        new_code = f"N{len(G.navPoints) + 1}"
-        new_name = f"Node_{len(G.navPoints) + 1}"
-        p = navPoint()
-        p.navPoint(new_code, new_name, round(x_click, 2), round(y_click, 2))
-        G.navPoints.append(p)
-        SaveNavPoints(G, "navPoints.txt")
-        updateGraphNodes()
-        ax.clear()
-        Plot(G, ax)
-        canvas.draw()
+        return
+
+    new_code = f"N{len(G.navPoints) + 1}"
+    new_name = f"Node_{len(G.navPoints) + 1}"
+    new_node = navPoint()
+    new_node.navPoint(new_code, new_name, round(y_click, 2), round(x_click, 2))
+    G.navPoints.append(new_node)
+    SaveNavPoints(G, "navPoints.txt")
+    updateGraphNodes()
+
 
 def RemoveNodeUI():
     code = entryD.get().strip()  # Ara llegim el "code" del node

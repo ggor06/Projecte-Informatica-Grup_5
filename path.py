@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 class Path:
     def __init__(self, nodes=None):
         self.nodes = nodes if nodes else []
-        self.real_cost = 0  # Cost real acumulat
+        self.real_cost = 0  # cost acumulat
 
     def last_node(self):
         return self.nodes[-1] if self.nodes else None
@@ -20,50 +20,57 @@ class Path:
         new_path = Path(self.nodes + [node])
         new_path.real_cost = self.real_cost + distance(self.last_node(), node)
         return new_path
-    
+
+
+# ────────────────────────────────────────────────────────────
+# FUNCIONS AUXILIARS
+# ────────────────────────────────────────────────────────────
 def AddNode2Path(path, node):
     if node in path.nodes:
         print("Ja està en la llista")
         return False
-    else:
-        if path.nodes:
-            path.real_cost += distance(path.nodes[-1], node)
-        path.nodes.append(node)
-        return True
+    if path.nodes:
+        path.real_cost += distance(path.nodes[-1], node)
+    path.nodes.append(node)
+    return True
+
 
 def ContainsNode(path, node):
     return node in path.nodes
+
 
 def Cost2Node(path, node):
     if node not in path.nodes:
         return -1
     cost = 0
-    i = 1
-    while i <= path.nodes.index(node):
+    for i in range(1, path.nodes.index(node) + 1):
         cost += distance(path.nodes[i - 1], path.nodes[i])
-        i += 1
     return cost
 
-
-
 def PlotPath(g, path, ax):
+    # nodes del camí
     for node in path.nodes:
-        ax.plot(node.lat, node.lon, 'o', color='red', markersize=5)
+        ax.plot(node.lon, node.lat, "o", color="red", markersize=5)
 
-    for i in range(len(path.nodes) - 1):
-        n1 = path.nodes[i]
-        n2 = path.nodes[i + 1]
+    # fletxes del camí
+    for n1, n2 in zip(path.nodes[:-1], path.nodes[1:]):
         arrow = FancyArrowPatch(
-            (n1.lat, n1.lon), (n2.lat, n2.lon),
-            arrowstyle='->',
-            color='blue',
+            (n1.lon, n1.lat), (n2.lon, n2.lat),
+            arrowstyle="->",
+            color="blue",
             mutation_scale=10,
-            linewidth=1
+            linewidth=1,
         )
         ax.add_patch(arrow)
 
-    # Plot all graph nodes in gray
+    # resta de nodes del graf
     for node in g.navPoints:
-        ax.plot(node.lat, node.lon, 'o', color='gray', markersize=5)
-        ax.text(node.lat + 0.3, node.lon + 0.3, node.name, fontsize=8)
+        ax.plot(node.lon, node.lat, "o", color="gray", markersize=5)
+        ax.text(node.lon + 0.3, node.lat + 0.3, node.name, fontsize=8)
 
+    # ajustos d’eix
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    ax.relim()
+    ax.autoscale_view()

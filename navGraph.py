@@ -88,6 +88,8 @@ def Plot(g, ax):
     ax.set_aspect('equal', adjustable='box')
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
+    ax.relim()
+    ax.autoscale_view()
 
 
 def PlotNode(g, originCode, ax):
@@ -119,6 +121,8 @@ def PlotNode(g, originCode, ax):
     ax.set_aspect('equal', adjustable='box')
     ax.set_xlabel("Longitud")
     ax.set_ylabel("Latitud")
+    ax.relim()
+    ax.autoscale_view()
 
     return True
 
@@ -186,7 +190,6 @@ def ReadNavPoints(g, file):
     try:
         with open(file, "r") as f:
             for line in f:
-                print ("Linea ", line)
                 parts = line.strip().split()
                 if not parts:
                     continue
@@ -202,7 +205,6 @@ def ReadNavSegments(g, file):
     try:
         with open(file, "r") as f:
             for line in f:
-                print ("Linea ", line)
                 parts = line.strip().split()
                 if not parts:
                     continue
@@ -228,8 +230,8 @@ def LecturaNavPoints(g, datos, ax, canvas):
     vec = datos.split(" ")
     code = vec[0]
     name = vec[1]
-    lat = float(vec[2])
-    lon = float(vec[3])
+    lat = float(vec[3])
+    lon = float(vec[2])
 
     p = navPoint()
     p.navPoint(code, name, lat, lon)
