@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from navGraph import createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints, SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment, LecturaNavPoints, LecturaNavSegments
 from navPoint import navPoint
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -9,8 +9,45 @@ from functools import partial
 from path import Path, PlotPath
 
 G = createGraph()
-ReadNavPoints(G, "Cat_nav.txt")
-ReadNavSegments(G, "Cat_seg.txt")
+
+
+def loadGraphFiles():
+    pts_file= filedialog.askopenfilename(title="Selecciona el NAV Points arxiu", filetypes=[("Text Files", "*    .txt"), ("All Files", "*.*")])
+    if not pts_file:
+        return
+    seg_file = filedialog.askopenfilename(title="Selecciona el NAV Segments arxiu", filetypes=[("Text Files","*.txt"),("All Files","*.*")])
+    if not seg_file:
+        return
+    ReadNavPoints(G, pts_file)
+    ReadNavSegments(G, seg_file)
+
+    ax.clear()
+    Plot(G,ax)
+    canvas.draw()
+
+
+click_enabled = False
+
+def saveGraphFiles():
+    
+    pts_file = filedialog.asksaveasfilename(
+        title="Guardar NAV Points com",
+        defaultextension=".txt",
+        filetypes=[("Text Files","*.txt"),("All Files","*.*")])
+    if not pts_file:
+        return
+
+    seg_file = filedialog.asksaveasfilename(
+        title="Guardar NAV Segments com",
+        defaultextension=".txt",
+        filetypes=[("Text Files","*.txt"),("All Files","*.*")])
+    if not seg_file:
+        return
+
+    SaveNavPoints(G, pts_file)
+    SaveNavSegments(G, seg_file)
+
+    messagebox.showinfo("Save Graph", "Graph files saved successfully.")
 
 navpoint_counter = 1
 selected_node_code = None
@@ -45,7 +82,9 @@ def create_navPoint(lat, lon):
 
 #Fet parcialment amb GPT, tutorials de YT i foros(reddit i Stackoverflow) --> És una funció molt complicada de pensar
 def clickRatolí(event, ax, canvas):
-    global selected_node_code
+    global selected_node_code, click_enabled
+    if not click_enabled:
+        return
     x_click = event.xdata
     y_click = event.ydata
     if x_click is None or y_click is None:
@@ -57,7 +96,7 @@ def clickRatolí(event, ax, canvas):
 
     for code, (lon, lat) in node_positions.items():
         dist = math.hypot(lon - x_click, lat - y_click)
-        if dist < 0.5 and dist < min_dist:
+        if dist < 0.1 and dist < min_dist:
             min_dist = dist
             clicked_code = code
 
@@ -73,6 +112,13 @@ def clickRatolí(event, ax, canvas):
     G.navPoints.append(new_node)
     SaveNavPoints(G, "navPoints.txt")
     updateGraphNodes()
+def toggleClick():
+    global click_enabled
+    click_enabled = not click_enabled
+    if click_enabled:
+        button_toggle_click.config(text="Desactiva clic per afegir node", bg="lightgreen")
+    else:
+        button_toggle_click.config(text="Activa clic per afegir node", bg="SystemButtonFace")
 
 
 def RemoveNodeUI():
@@ -136,6 +182,11 @@ entryN.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 button_inputNode=tk.Button(button_inputNode_frame, text="Afegir node", command=lambda: LecturaNavPoints(G, entryN.get(), ax, canvas))
 button_inputNode.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 
+button_toggle_click = tk.Button(button_inputNode_frame, text="Activa clic per afegir node", command=toggleClick)
+button_toggle_click.grid(row=2, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+button_inputNode_frame.rowconfigure(2, weight=1)
+
+
 # Frame to add a segment with a custom name
 button_customSegment_frame = tk.LabelFrame(root, text="Afegir segment")
 button_customSegment_frame.grid(row=2, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
@@ -175,36 +226,17 @@ graph_frame.grid(row=0, column=1, rowspan=4, padx=5, pady=5, sticky="nsew")
 graph_frame.columnconfigure(0, weight=1)
 graph_frame.rowconfigure(0, weight=1)
 #Frame para cargar y aguardar grafos
-charge_frame=tk.LabelFrame(root, text="Guardar y carregar gràfic")
-charge_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-charge_frame.rowconfigure(0, weight=1)
-charge_frame.rowconfigure(1, weight=1)
-charge_frame.rowconfigure(2, weight=1)
-charge_frame.rowconfigure(3, weight=1)
+charge_frame = tk.LabelFrame(root, text="Load / Save Graph")
+charge_frame.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
 charge_frame.columnconfigure(0, weight=1)
-charge_frame.columnconfigure(1, weight=1)
-#Botones para cargar y guardar grafos
-entrysaveNameP = tk.Entry(charge_frame)
-entrysaveNameP.insert(0, "Nom del fitxer")
-entrysaveNameP.grid(row=0, column=0, padx=5, pady=2, sticky="nsew")
-savePoints=tk.Button(charge_frame, text="Guardar nodes", command=lambda: SaveNavPoints(G, entrysaveNameP.get()))
-savePoints.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
-entrychargeNameP=tk.Entry(charge_frame)
-entrychargeNameP.insert(0, "Nom del fitxer")
-entrychargeNameP.grid(row=1, column=0, padx=5, pady=2, sticky="nsew")
-chargePoints=tk.Button(charge_frame, text="Carregar nodes", command=lambda: ReadNavPoints(G, entrychargeNameP.get()))
-chargePoints.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+charge_frame.rowconfigure([0,1], weight=1)
 
-entrysaveNameS = tk.Entry(charge_frame)
-entrysaveNameS.insert(0, "Nom del fitxer")
-entrysaveNameS.grid(row=2, column=0, padx=5, pady=2, sticky="nsew")
-saveSegments=tk.Button(charge_frame, text="Guardar segments", command=lambda: SaveNavSegments(G, entrysaveNameS.get()))
-saveSegments.grid(row=2, column=1, padx=5, pady=5, sticky="nsew")
-entrychargeNameS=tk.Entry(charge_frame)
-entrychargeNameS.insert(0, "Nom del fitxer")
-entrychargeNameS.grid(row=3, column=0, padx=5, pady=2, sticky="nsew")
-chargeSegments=tk.Button(charge_frame, text="Carregar segments", command=lambda: ReadNavSegments(G, entrychargeNameS.get()))
-chargeSegments.grid(row=3, column=1, padx=5, pady=5, sticky="nsew")
+btn_load = tk.Button(charge_frame, text="Load Graph", command=loadGraphFiles)
+btn_load.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+btn_save = tk.Button(charge_frame, text="Save Graph", command=saveGraphFiles)
+btn_save.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+
 
 #Frame para poner nodos para path
 path_frame=tk.LabelFrame(root, text="Camí a seguir")
