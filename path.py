@@ -21,10 +21,6 @@ class Path:
         new_path.real_cost = self.real_cost + distance(self.last_node(), node)
         return new_path
 
-
-# ────────────────────────────────────────────────────────────
-# FUNCIONS AUXILIARS
-# ────────────────────────────────────────────────────────────
 def AddNode2Path(path, node):
     if node in path.nodes:
         print("Ja està en la llista")

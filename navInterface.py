@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 import math
 from functools import partial
 from path import Path, PlotPath
+import matplotlib.backends.backend_tkagg as tkagg
 
 G = createGraph()
 
@@ -264,6 +265,14 @@ canvas.mpl_connect("button_press_event", partial(clickRatolí, ax=ax, canvas=can
 canvas.draw()
 canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
 
+#Frame para poner el zoom
+toolbar_frame = tk.Frame(graph_frame)
+toolbar_frame.grid(row=1, column=0, sticky="ew")
+#Zoom
+toolbar = tkagg.NavigationToolbar2Tk(canvas, toolbar_frame)
+toolbar.update()
+toolbar.pack(side=tk.BOTTOM, fill=tk.X)
 
 
 root.mainloop()
+
