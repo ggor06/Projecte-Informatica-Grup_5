@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
-from navGraph import createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints, SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment, LecturaNavPoints, LecturaNavSegments
+from navGraph import createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints, SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment, LecturaNavPoints, LecturaNavSegments, AddNavPoint, AddNavPoint
 from navPoint import navPoint
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -25,7 +25,6 @@ def loadGraphFiles():
     ax.clear()
     Plot(G,ax)
     canvas.draw()
-
 
 click_enabled = False
 
@@ -84,13 +83,13 @@ def create_navPoint(lat, lon):
 #Fet parcialment amb GPT, tutorials de YT i foros(reddit i Stackoverflow) --> És una funció molt complicada de pensar
 def clickRatolí(event, ax, canvas):
     global selected_node_code, click_enabled
-    if not click_enabled:
-        return
+
     x_click = event.xdata
     y_click = event.ydata
     if x_click is None or y_click is None:
         return
 
+    # Primer: intentar seleccionar un node per veure veïns
     node_positions = {n.code: (n.lon, n.lat) for n in G.navPoints}
     clicked_code = None
     min_dist = float("inf")
@@ -106,13 +105,23 @@ def clickRatolí(event, ax, canvas):
         updateGraphNeighbors()
         return
 
+    # Només afegir si està activat
+    if not click_enabled:
+        return
+
+    from navGraph import AddNavPoint, SaveNavPoints
+
     new_code = f"N{len(G.navPoints) + 1}"
     new_name = f"Node_{len(G.navPoints) + 1}"
-    new_node = navPoint()
-    new_node.navPoint(new_code, new_name, round(y_click, 2), round(x_click, 2))
-    G.navPoints.append(new_node)
-    SaveNavPoints(G, "navPoints.txt")
-    updateGraphNodes()
+    lat = round(y_click, 2)
+    lon = round(x_click, 2)
+
+    if AddNavPoint(G, new_code, new_name, lat, lon):
+        SaveNavPoints(G, "navPoints.txt")
+        updateGraphNodes()
+    else:
+        messagebox.showerror("Error", f"El node amb codi '{new_code}' ja existeix.")
+
 def toggleClick():
     global click_enabled
     click_enabled = not click_enabled
