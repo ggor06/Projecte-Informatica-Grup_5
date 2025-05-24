@@ -1,6 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
-from navGraph import createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints, SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment, LecturaNavPoints, LecturaNavSegments, AddNavPoint, AddNavPoint
+from navGraph import (
+    createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints,
+    SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment,
+    LecturaNavPoints, AddNavPoint, FindAirport, FindNavPoint,
+    FindShortestPathBetweenAirports, FindShortestPathByName
+)
+
 from navPoint import navPoint
 from navAirport import ReadNavAirports
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -74,40 +80,46 @@ def updateGraphNeighbors():
 
 def updatePath():
     ax.clear()
-    if not getattr(G, 'pts_file', None):
-        return
-    if not getattr(G, 'seg_file', None):
-        return
-    if not getattr(G, 'aer_file', None):
+    if not getattr(G, 'pts_file', None) or not getattr(G, 'seg_file', None) or not getattr(G, 'aer_file', None):
         return
 
-    ReadNavPoints   (G, G.pts_file)
-    ReadNavSegments (G, G.seg_file)
+    ReadNavPoints(G, G.pts_file)
+    ReadNavSegments(G, G.seg_file)
+    ReadNavAirports(G, G.aer_file)
 
-    #La xarxa la fa bidireccional, aportació de GPT
+    # Rebuild bidirectional neighbors
     from navPoint import AddNeighbor
     for seg in G.navSegments:
         o = next((n for n in G.navPoints if n.code == seg.originNumber), None)
         d = next((n for n in G.navPoints if n.code == seg.destinationNumber), None)
         if o and d:
             AddNeighbor(d, o)
-
-    ReadNavAirports(G, G.aer_file)
+            AddNeighbor(o, d)
 
     origin = entryNodeOrigin.get().strip()
     dest   = entryNodeDest.get().strip()
-    codes = {n.code for n in G.navPoints}
-    if origin not in codes or dest not in codes:
+
+    try:
+        is_airport = lambda txt: any(ap.name.lower() == txt.lower() for ap in G.navAirports)
+
+        if is_airport(origin) and is_airport(dest):
+            route_nodes = FindShortestPathBetweenAirports(G, origin, dest)
+        else:
+            route_nodes = FindShortestPathByName(G, origin, dest)
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
         canvas.draw()
         return
-
-    route_nodes = FindShortestPath(G, origin, dest) or []
 
     if route_nodes:
         from path import Path, PlotPath
         PlotPath(G, Path(route_nodes), ax)
+    else:
+        messagebox.showerror("Error", f"No route found between '{origin}' and '{dest}'")
+        canvas.draw()
+        return
 
-    #KML
+    # KML
     header = """<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
@@ -123,12 +135,10 @@ def updatePath():
     </IconStyle></Style>
     <Style id="airway"><LineStyle><color>7f00ffff</color><width>1</width></LineStyle></Style>
     <Style id="route"><LineStyle><color>ff0000ff</color><width>4</width></LineStyle></Style>
-
 """
     footer = """  </Document>
 </kml>
 """
-
     kml_filename = "ruta.kml"
     with open(kml_filename, "w", encoding="utf-8") as f:
         f.write(header)
@@ -178,7 +188,6 @@ def updatePath():
 """)
         f.write(footer)
 
-    #Obertura automatica de Google Earth
     if sys.platform.startswith("darwin"):
         subprocess.call(["open", kml_filename])
     elif os.name == "nt":
@@ -187,6 +196,7 @@ def updatePath():
         subprocess.call(["xdg-open", kml_filename])
 
     canvas.draw()
+
 
 navpoint_counter = 1
 def create_navPoint(lat, lon):

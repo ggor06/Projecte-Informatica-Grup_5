@@ -3,15 +3,73 @@ from navPoint import navPoint, AddNeighbor, distance
 import math
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
+
+
 class Graph:
     def __init__(self):
         self.navPoints=[]
         self.navSegments=[]
         self.navAirports=[]
         self.navAirspace=[]
-        self.pts_file = None
-        self.seg_file = None
-        self.aer_file = None
+
+def FindNavPoint(g, identifier):
+
+    key = identifier.strip().lower()
+    for np in g.navPoints:
+        if np.code.lower() == key or np.name.lower() == key:
+            return np
+    return None
+
+def FindShortestPathByName(g, origin_id, dest_id):
+    """
+    Looks up origin_id and dest_id (by code or name), then calls 
+    your existing FindShortestPath(g, ori_code, dst_code).
+    """
+    ori = FindNavPoint(g, origin_id)
+    dst = FindNavPoint(g, dest_id)
+    if ori is None or dst is None:
+        raise ValueError(f"Unknown waypoint: {origin_id!r} or {dest_id!r}")
+    return FindShortestPath(g, ori.code, dst.code)
+
+def FindAirport(g, airport_name):
+    """
+    Return the navAirport whose .name matches airport_name (case-insensitive).
+    """
+    key = airport_name.strip().lower()
+    for ap in g.navAirports:
+        if ap.name.lower() == key:
+            return ap
+    return None
+
+def FindShortestPathBetweenAirports(g, origin_air, dest_air):
+    """
+    For every SID in origin_air and every STAR in dest_air, run FindShortestPath;
+    pick and return the path with the minimal total distance.
+    """
+    a1 = FindAirport(g, origin_air)
+    a2 = FindAirport(g, dest_air)
+    if not a1 or not a2:
+        raise ValueError(f"Unknown airport: {origin_air!r} or {dest_air!r}")
+
+    best_path = None
+    best_cost = float('inf')
+    from navPoint import distance
+
+    for sid in a1.sid:
+        for star in a2.star:
+            try:
+                path = FindShortestPath(g, sid.code, star.code)
+            except Exception:
+                continue
+            if not path:
+                continue
+            cost = sum(distance(path[i], path[i+1]) for i in range(len(path)-1))
+            if cost < best_cost:
+                best_cost, best_path = cost, path
+
+    return best_path
+
+
 
 def AddNavPoint(g, code, name, lat, lon):
     for p in g.navPoints:
@@ -93,6 +151,7 @@ def Plot(g, ax):
     ax.set_ylabel("Latitude")
     ax.relim()
     ax.autoscale_view()
+    
 
 
 def PlotNode(g, originCode, ax):
@@ -278,3 +337,11 @@ def LecturaNavSegments(g, datos, ax, canvas):
     Plot(g, ax)
     canvas.draw()
     return True
+
+__all__ = [
+    "createGraph", "ReadNavPoints", "ReadNavSegments", "SaveNavPoints", "SaveNavSegments",
+    "AddNavPoint", "AddSegment", "RemoveNavPoint",
+    "Plot", "PlotNode", "FindShortestPath",
+    "FindNavPoint", "FindShortestPathByName", "FindAirport", "FindShortestPathBetweenAirports",
+    "LecturaNavPoints", "LecturaNavSegments"
+]
