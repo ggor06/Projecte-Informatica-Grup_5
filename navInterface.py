@@ -2,12 +2,14 @@ import tkinter as tk
 from tkinter import messagebox, filedialog
 from navGraph import createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints, SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment, LecturaNavPoints, LecturaNavSegments, AddNavPoint, AddNavPoint
 from navPoint import navPoint
+from navAirport import ReadNavAirports
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import math
 from functools import partial
 from path import Path, PlotPath
 import matplotlib.backends.backend_tkagg as tkagg
+import sys, subprocess, os
 
 G = createGraph()
 
@@ -19,8 +21,16 @@ def loadGraphFiles():
     seg_file = filedialog.askopenfilename(title="Selecciona el NAV Segments arxiu", filetypes=[("Text Files","*.txt"),("All Files","*.*")])
     if not seg_file:
         return
+    aer_file=filedialog.askopenfilename(title="Selecciona el NAV Aer arxiu", filetypes=[("Text Files","*.txt"),("All Files","*.*")])
+    if not aer_file:
+        return
+    
+    G.pts_file = pts_file
+    G.seg_file = seg_file
+    G.aer_file = aer_file
     ReadNavPoints(G, pts_file)
     ReadNavSegments(G, seg_file)
+    ReadNavAirports(G, aer_file)
 
     ax.clear()
     Plot(G,ax)
@@ -64,10 +74,118 @@ def updateGraphNeighbors():
 
 def updatePath():
     ax.clear()
-    list = FindShortestPath(G, entryNodeOrigin.get(), entryNodeDest.get())
-    if list:
-        path = Path(list)
-        PlotPath(G, path, ax)
+    if not getattr(G, 'pts_file', None):
+        return
+    if not getattr(G, 'seg_file', None):
+        return
+    if not getattr(G, 'aer_file', None):
+        return
+
+    ReadNavPoints   (G, G.pts_file)
+    ReadNavSegments (G, G.seg_file)
+
+    #La xarxa la fa bidireccional, aportació de GPT
+    from navPoint import AddNeighbor
+    for seg in G.navSegments:
+        o = next((n for n in G.navPoints if n.code == seg.originNumber), None)
+        d = next((n for n in G.navPoints if n.code == seg.destinationNumber), None)
+        if o and d:
+            AddNeighbor(d, o)
+
+    ReadNavAirports(G, G.aer_file)
+
+    origin = entryNodeOrigin.get().strip()
+    dest   = entryNodeDest.get().strip()
+    codes = {n.code for n in G.navPoints}
+    if origin not in codes or dest not in codes:
+        canvas.draw()
+        return
+
+    route_nodes = FindShortestPath(G, origin, dest) or []
+
+    if route_nodes:
+        from path import Path, PlotPath
+        PlotPath(G, Path(route_nodes), ax)
+
+    #KML
+    header = """<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Mapa amb ruta</name>
+    <Style id="navpoint"><IconStyle><scale>0.5</scale>
+      <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
+    </IconStyle></Style>
+    <Style id="sid"><IconStyle><scale>0.8</scale>
+      <Icon><href>http://maps.google.com/mapfiles/kml/shapes/airports.png</href></Icon>
+    </IconStyle></Style>
+    <Style id="star"><IconStyle><scale>0.8</scale>
+      <Icon><href>http://maps.google.com/mapfiles/kml/shapes/target.png</href></Icon>
+    </IconStyle></Style>
+    <Style id="airway"><LineStyle><color>7f00ffff</color><width>1</width></LineStyle></Style>
+    <Style id="route"><LineStyle><color>ff0000ff</color><width>4</width></LineStyle></Style>
+
+"""
+    footer = """  </Document>
+</kml>
+"""
+
+    kml_filename = "ruta.kml"
+    with open(kml_filename, "w", encoding="utf-8") as f:
+        f.write(header)
+
+        for pt in G.navPoints:
+            f.write(f"""    <Placemark>
+      <name>{pt.code}</name>
+      <styleUrl>#navpoint</styleUrl>
+      <Point><coordinates>{pt.lon},{pt.lat}</coordinates></Point>
+    </Placemark>
+""")
+        for ap in G.navAirports:
+            for sid in ap.sid:
+                f.write(f"""    <Placemark>
+      <name>{ap.name}_SID</name>
+      <styleUrl>#sid</styleUrl>
+      <Point><coordinates>{sid.lon},{sid.lat}</coordinates></Point>
+    </Placemark>
+""")
+            for star in ap.star:
+                f.write(f"""    <Placemark>
+      <name>{ap.name}_STAR</name>
+      <styleUrl>#star</styleUrl>
+      <Point><coordinates>{star.lon},{star.lat}</coordinates></Point>
+    </Placemark>
+""")
+        for seg in G.navSegments:
+            o = next((n for n in G.navPoints if n.code == seg.originNumber), None)
+            d = next((n for n in G.navPoints if n.code == seg.destinationNumber), None)
+            if o and d:
+                f.write(f"""    <Placemark>
+      <styleUrl>#airway</styleUrl>
+      <LineString><tessellate>1</tessellate>
+        <coordinates>{o.lon},{o.lat} {d.lon},{d.lat}</coordinates>
+      </LineString>
+    </Placemark>
+""")
+        if route_nodes:
+            coords = " ".join(f"{n.lon},{n.lat}" for n in route_nodes)
+            f.write(f"""    <Placemark>
+      <name>Camí Seleccionat</name>
+      <styleUrl>#route</styleUrl>
+      <LineString><tessellate>1</tessellate>
+        <coordinates>{coords}</coordinates>
+      </LineString>
+    </Placemark>
+""")
+        f.write(footer)
+
+    #Obertura automatica de Google Earth
+    if sys.platform.startswith("darwin"):
+        subprocess.call(["open", kml_filename])
+    elif os.name == "nt":
+        os.startfile(kml_filename)
+    else:
+        subprocess.call(["xdg-open", kml_filename])
+
     canvas.draw()
 
 navpoint_counter = 1
@@ -262,7 +380,7 @@ entryNodeOrigin.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
 entryNodeDest = tk.Entry(path_frame)
 entryNodeDest.insert(0, "Node destí")
 entryNodeDest.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
-button_path = tk.Button(path_frame, text="Afegir Camí", command=lambda: updatePath())
+button_path = tk.Button(path_frame, text="Afegir Camí i generar KML", command=lambda: updatePath())
 button_path.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
 
 #Creación de la figura(para poner los grafos)

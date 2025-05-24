@@ -9,6 +9,9 @@ class Graph:
         self.navSegments=[]
         self.navAirports=[]
         self.navAirspace=[]
+        self.pts_file = None
+        self.seg_file = None
+        self.aer_file = None
 
 def AddNavPoint(g, code, name, lat, lon):
     for p in g.navPoints:
