@@ -13,7 +13,6 @@ class Graph:
         self.navAirspace=[]
 
 def FindNavPoint(g, identifier):
-
     key = identifier.strip().lower()
     for np in g.navPoints:
         if np.code.lower() == key or np.name.lower() == key:
@@ -21,20 +20,13 @@ def FindNavPoint(g, identifier):
     return None
 
 def FindShortestPathByName(g, origin_id, dest_id):
-    """
-    Looks up origin_id and dest_id (by code or name), then calls 
-    your existing FindShortestPath(g, ori_code, dst_code).
-    """
     ori = FindNavPoint(g, origin_id)
     dst = FindNavPoint(g, dest_id)
     if ori is None or dst is None:
-        raise ValueError(f"Unknown waypoint: {origin_id!r} or {dest_id!r}")
+        raise ValueError(f"Waypoint desconegut: {origin_id!r} o {dest_id!r}")
     return FindShortestPath(g, ori.code, dst.code)
 
 def FindAirport(g, airport_name):
-    """
-    Return the navAirport whose .name matches airport_name (case-insensitive).
-    """
     key = airport_name.strip().lower()
     for ap in g.navAirports:
         if ap.name.lower() == key:
@@ -42,14 +34,10 @@ def FindAirport(g, airport_name):
     return None
 
 def FindShortestPathBetweenAirports(g, origin_air, dest_air):
-    """
-    For every SID in origin_air and every STAR in dest_air, run FindShortestPath;
-    pick and return the path with the minimal total distance.
-    """
     a1 = FindAirport(g, origin_air)
     a2 = FindAirport(g, dest_air)
     if not a1 or not a2:
-        raise ValueError(f"Unknown airport: {origin_air!r} or {dest_air!r}")
+        raise ValueError(f"Aeroport desconegut: {origin_air!r} o {dest_air!r}")
 
     best_path = None
     best_cost = float('inf')
@@ -68,8 +56,6 @@ def FindShortestPathBetweenAirports(g, origin_air, dest_air):
                 best_cost, best_path = cost, path
 
     return best_path
-
-
 
 def AddNavPoint(g, code, name, lat, lon):
     for p in g.navPoints:
@@ -151,8 +137,6 @@ def Plot(g, ax):
     ax.set_ylabel("Latitude")
     ax.relim()
     ax.autoscale_view()
-    
-
 
 def PlotNode(g, originCode, ax):
     for node in g.navPoints:
@@ -170,14 +154,7 @@ def PlotNode(g, originCode, ax):
     for seg in g.navSegments:
         if seg.originNumber == originCode:
             dest = next(n for n in g.navPoints if n.code == seg.destinationNumber)
-            arrow = FancyArrowPatch(
-                (origin.lon, origin.lat),
-                (dest.lon,  dest.lat),
-                arrowstyle='->',
-                color='blue',
-                mutation_scale=10,
-                linewidth=1
-            )
+            arrow = FancyArrowPatch((origin.lon, origin.lat), (dest.lon,  dest.lat), arrowstyle='->', color='blue', mutation_scale=10, linewidth=1)
             ax.add_patch(arrow)
 
     ax.set_aspect('equal', adjustable='box')
@@ -187,8 +164,6 @@ def PlotNode(g, originCode, ax):
     ax.autoscale_view()
 
     return True
-
-
 
 def FindShortestPath(g, originCode, destinationCode):
     oriNode = None
@@ -220,9 +195,8 @@ def FindShortestPath(g, originCode, destinationCode):
                 if vei not in visitats:
                     nou_cami = cami + [vei]
                     cues.append(nou_cami)
-
     return None
-
+    
 def createGraph():
     G=Graph()
     return G
@@ -338,10 +312,4 @@ def LecturaNavSegments(g, datos, ax, canvas):
     canvas.draw()
     return True
 
-__all__ = [
-    "createGraph", "ReadNavPoints", "ReadNavSegments", "SaveNavPoints", "SaveNavSegments",
-    "AddNavPoint", "AddSegment", "RemoveNavPoint",
-    "Plot", "PlotNode", "FindShortestPath",
-    "FindNavPoint", "FindShortestPathByName", "FindAirport", "FindShortestPathBetweenAirports",
-    "LecturaNavPoints", "LecturaNavSegments"
-]
+__all__ = ["createGraph", "ReadNavPoints", "ReadNavSegments", "SaveNavPoints", "SaveNavSegments","AddNavPoint", "AddSegment", "RemoveNavPoint","Plot", "PlotNode", "FindShortestPath","FindNavPoint", "FindShortestPathByName", "FindAirport", "FindShortestPathBetweenAirports","LecturaNavPoints", "LecturaNavSegments"]

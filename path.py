@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 class Path:
     def __init__(self, nodes=None):
         self.nodes = nodes if nodes else []
-        self.real_cost = 0  # cost acumulat
+        self.real_cost = 0
+        self.co2=0
 
     def last_node(self):
         return self.nodes[-1] if self.nodes else None
@@ -30,10 +31,8 @@ def AddNode2Path(path, node):
     path.nodes.append(node)
     return True
 
-
 def ContainsNode(path, node):
     return node in path.nodes
-
 
 def Cost2Node(path, node):
     if node not in path.nodes:
@@ -44,26 +43,26 @@ def Cost2Node(path, node):
     return cost
 
 def PlotPath(g, path, ax):
+    path.real_cost=0
     # nodes del camí
     for node in path.nodes:
         ax.plot(node.lon, node.lat, "o", color="red", markersize=5)
 
     # fletxes del camí
     for n1, n2 in zip(path.nodes[:-1], path.nodes[1:]):
-        arrow = FancyArrowPatch(
-            (n1.lon, n1.lat), (n2.lon, n2.lat),
-            arrowstyle="->",
-            color="blue",
-            mutation_scale=10,
-            linewidth=1,
-        )
+        arrow = FancyArrowPatch((n1.lon, n1.lat), (n2.lon, n2.lat), arrowstyle="->", color="blue", mutation_scale=10, linewidth=1,)
         ax.add_patch(arrow)
+        seg_cost = distance(n1, n2)
+        path.real_cost += seg_cost
 
     # resta de nodes del graf
     for node in g.navPoints:
         ax.plot(node.lon, node.lat, "o", color="gray", markersize=5)
         ax.text(node.lon + 0.3, node.lat + 0.3, node.name, fontsize=8)
-
+        #Factor de emisiones de un Airbus a320 lleno
+    
+    factor=9.2 
+    path.co2=factor*path.real_cost
     # ajustos d’eix
     ax.set_aspect("equal", adjustable="box")
     ax.set_xlabel("Longitude")

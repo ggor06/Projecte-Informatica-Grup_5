@@ -1,12 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
-from navGraph import (
-    createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints,
-    SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment,
-    LecturaNavPoints, AddNavPoint, FindAirport, FindNavPoint,
-    FindShortestPathBetweenAirports, FindShortestPathByName
-)
-
+from navGraph import (createGraph, Plot, PlotNode, ReadNavPoints, ReadNavSegments, SaveNavPoints, SaveNavSegments, FindShortestPath, RemoveNavPoint, AddSegment, LecturaNavPoints, AddNavPoint, FindAirport, FindNavPoint, FindShortestPathBetweenAirports, FindShortestPathByName)
 from navPoint import navPoint
 from navAirport import ReadNavAirports
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -18,7 +12,6 @@ import matplotlib.backends.backend_tkagg as tkagg
 import sys, subprocess, os
 
 G = createGraph()
-
 
 def loadGraphFiles():
     pts_file= filedialog.askopenfilename(title="Selecciona el NAV Points arxiu", filetypes=[("Text Files", "*    .txt"), ("All Files", "*.*")])
@@ -46,17 +39,11 @@ click_enabled = False
 
 def saveGraphFiles():
     
-    pts_file = filedialog.asksaveasfilename(
-        title="Guardar NAV Points com",
-        defaultextension=".txt",
-        filetypes=[("Text Files","*.txt"),("All Files","*.*")])
+    pts_file = filedialog.asksaveasfilename(title="Guardar NAV Points com", defaultextension=".txt", filetypes=[("Text Files","*.txt"),("All Files","*.*")])
     if not pts_file:
         return
 
-    seg_file = filedialog.asksaveasfilename(
-        title="Guardar NAV Segments com",
-        defaultextension=".txt",
-        filetypes=[("Text Files","*.txt"),("All Files","*.*")])
+    seg_file = filedialog.asksaveasfilename(title="Guardar NAV Segments com", defaultextension=".txt", filetypes=[("Text Files","*.txt"),("All Files","*.*")])
     if not seg_file:
         return
 
@@ -87,7 +74,7 @@ def updatePath():
     ReadNavSegments(G, G.seg_file)
     ReadNavAirports(G, G.aer_file)
 
-    # Rebuild bidirectional neighbors
+    #Rebuild bidirectional neighbors
     from navPoint import AddNeighbor
     for seg in G.navSegments:
         o = next((n for n in G.navPoints if n.code == seg.originNumber), None)
@@ -112,10 +99,11 @@ def updatePath():
         return
 
     if route_nodes:
-        from path import Path, PlotPath
-        PlotPath(G, Path(route_nodes), ax)
+        path=Path(route_nodes)
+        PlotPath(G, path, ax)
+        co2_value_var.set(f"{path.co2:.2f} kg")
     else:
-        messagebox.showerror("Error", f"No route found between '{origin}' and '{dest}'")
+        messagebox.showerror("Error", f"No hi ha ruta entre '{origin}' i '{dest}'")
         canvas.draw()
         return
 
@@ -197,7 +185,6 @@ def updatePath():
 
     canvas.draw()
 
-
 navpoint_counter = 1
 def create_navPoint(lat, lon):
     global navpoint_counter
@@ -260,7 +247,7 @@ def toggleClick():
 
 
 def RemoveNodeUI():
-    code = entryD.get().strip()  # Ara llegim el "code" del node
+    code = entryD.get().strip()
     if RemoveNavPoint(G, code):
         ax.clear()
         Plot(G, ax)
@@ -279,6 +266,9 @@ def AddSegmentUI():
         canvas.draw()
     else:
         messagebox.showerror("Error", "No s'ha pogut afegir el segment. Comprova els codis dels nodes.")
+
+def calc_co2(path):
+    return path.co2
 
 #Ventana principal
 root = tk.Tk()
@@ -323,7 +313,6 @@ button_inputNode.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W
 button_toggle_click = tk.Button(button_inputNode_frame, text="Activa clic per afegir node", command=toggleClick)
 button_toggle_click.grid(row=2, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 button_inputNode_frame.rowconfigure(2, weight=1)
-
 
 # Frame to add a segment with a custom name
 button_customSegment_frame = tk.LabelFrame(root, text="Afegir segment")
@@ -375,7 +364,6 @@ btn_load.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 btn_save = tk.Button(charge_frame, text="Save Graph", command=saveGraphFiles)
 btn_save.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
 
-
 #Frame para poner nodos para path
 path_frame=tk.LabelFrame(root, text="Camí a seguir")
 path_frame.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
@@ -393,6 +381,19 @@ entryNodeDest.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
 button_path = tk.Button(path_frame, text="Afegir Camí i generar KML", command=lambda: updatePath())
 button_path.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
 
+#Frame para poner emisiones de CO2
+co2_frame=tk.LabelFrame(root, text="Càlcul de les emisions de CO2")
+co2_frame.grid(row=2, column=2, padx=5, pady=5, sticky="nsew")
+co2_frame.rowconfigure(0, weight=1)
+co2_frame.rowconfigure(1, weight=1)
+co2_frame.rowconfigure(2, weight=1)
+co2_frame.columnconfigure(0, weight=1)
+co2_value_var = tk.StringVar(value="0.00 kg")
+lbl_desc = tk.Label(co2_frame,text="Emissions totals:", font=("Helvetica", 10), bg=co2_frame.cget("bg"), fg="#333333")
+lbl_desc.grid(row=0, column=0, sticky="w", padx=10, pady=(10,2))
+lbl_value = tk.Label(co2_frame, textvariable=co2_value_var, font=("Helvetica", 16, "bold"), bg=co2_frame.cget("bg"),fg="#2E8B57")
+lbl_value.grid(row=1, column=0, sticky="w", padx=10, pady=(0,10))
+
 #Creación de la figura(para poner los grafos)
 fig=Figure(figsize=(5, 4), dpi=100)
 ax=fig.add_subplot(111)
@@ -409,7 +410,6 @@ toolbar_frame.grid(row=1, column=0, sticky="ew")
 toolbar = tkagg.NavigationToolbar2Tk(canvas, toolbar_frame)
 toolbar.update()
 toolbar.pack(side=tk.BOTTOM, fill=tk.X)
-
 
 root.mainloop()
 

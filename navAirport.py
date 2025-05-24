@@ -13,9 +13,8 @@ def ReadNavAirports(g, airports_file):
         lines = [l.strip() for l in f if l.strip()]
     for i in range(0, len(lines), 3):
         ap = navAirport(); ap.navAirport(lines[i])
-        sid_code  = lines[i+1].split()[-1]  # ex. "ALT.D"
-        star_code = lines[i+2].split()[-1]  # ex. "ALT.A"
-        # cerca en els navPoints ja carregats
+        sid_code  = lines[i+1].split()[-1]
+        star_code = lines[i+2].split()[-1]
         for pt in g.navPoints:
             if pt.name == sid_code:
                 ap.sid.append(pt)
