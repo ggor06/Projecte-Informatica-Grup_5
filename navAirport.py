@@ -1,12 +1,10 @@
-from navGraph import ReadNavPoints
-from navPoint import navPoint
-from navGraph import AddNavPoint
 class navAirport:
     def navAirport(self, name):
         self.name=name
         self.sid=[]
         self.star=[]
 
+#La funció associa el navPoint dels SID i STAR amb el seu nom en la llista d'aeroports.
 def ReadNavAirports(g, airports_file):
     g.navAirports = []
     with open(airports_file, "r", encoding="utf-8") as f:

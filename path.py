@@ -59,8 +59,8 @@ def PlotPath(g, path, ax):
     for node in g.navPoints:
         ax.plot(node.lon, node.lat, "o", color="gray", markersize=5)
         ax.text(node.lon + 0.3, node.lat + 0.3, node.name, fontsize=8)
-        #Factor de emisiones de un Airbus a320 lleno
     
+    #Factor d'emissions
     factor=9.2 
     path.co2=factor*path.real_cost
     # ajustos d’eix

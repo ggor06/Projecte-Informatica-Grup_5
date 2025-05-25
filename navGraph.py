@@ -4,7 +4,6 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 
-
 class Graph:
     def __init__(self):
         self.navPoints=[]
@@ -41,7 +40,6 @@ def FindShortestPathBetweenAirports(g, origin_air, dest_air):
 
     best_path = None
     best_cost = float('inf')
-    from navPoint import distance
 
     for sid in a1.sid:
         for star in a2.star:
@@ -57,6 +55,7 @@ def FindShortestPathBetweenAirports(g, origin_air, dest_air):
 
     return best_path
 
+#Funció per afegir un navPoint
 def AddNavPoint(g, code, name, lat, lon):
     for p in g.navPoints:
         if p.code == code:
@@ -66,6 +65,7 @@ def AddNavPoint(g, code, name, lat, lon):
     g.navPoints.append(p)
     return True
 
+#Funció per afegir un segment
 def AddSegment(g, originCode, destinationCode):
     origin_node = None
     destination_node = None
@@ -89,7 +89,7 @@ def AddSegment(g, originCode, destinationCode):
     AddNeighbor(origin_node, destination_node)
     return True
 
-
+#Funció per saber si t'apropes a un lloc
 def GetClosest(g, x, y):
     closest_node=None  
     min_distance=float('inf') 
@@ -100,37 +100,23 @@ def GetClosest(g, x, y):
             closest_node=n 
     return closest_node 
 
+#Funció per fer el plot del espai aeri
 def Plot(g, ax):
 
     for node in g.navPoints:
         ax.plot(node.lon, node.lat, 'o', color='red', markersize=5)
-        ax.text(
-            node.lon + 0.01, node.lat + 0.01,  # tiny offset
-            node.name,
-            fontsize=6,
-            ha='left', va='bottom'
-        )
+        ax.text(node.lon + 0.01, node.lat + 0.01, node.name, fontsize=6, ha='left', va='bottom')
 
     for segment in g.navSegments:
 
         o = next(n for n in g.navPoints if n.code == segment.originNumber)
         d = next(n for n in g.navPoints if n.code == segment.destinationNumber)
 
-        ax.plot(
-            [o.lon, d.lon],
-            [o.lat, d.lat],
-            color='blue', linewidth=1
-        )
+        ax.plot([o.lon, d.lon], [o.lat, d.lat], color='blue', linewidth=1)
 
         mid_lon = 0.5 * (o.lon + d.lon)
         mid_lat = 0.5 * (o.lat + d.lat)
-        ax.text(
-            mid_lon, mid_lat,
-            f"{segment.distance:.1f}",
-            fontsize=6,
-            ha='center', va='center',
-            color='purple'
-        )
+        ax.text(mid_lon, mid_lat, f"{segment.distance:.1f}", fontsize=6, ha='center', va='center', color='purple')
 
     ax.set_aspect('equal', adjustable='box')
     ax.set_xlabel("Longitude")
@@ -138,6 +124,7 @@ def Plot(g, ax):
     ax.relim()
     ax.autoscale_view()
 
+#Funció per fer el plot dels veïns
 def PlotNode(g, originCode, ax):
     for node in g.navPoints:
         ax.plot(node.lon, node.lat, 'o', color='gray', markersize=5)
@@ -165,6 +152,7 @@ def PlotNode(g, originCode, ax):
 
     return True
 
+#Trobar el camí més petit
 def FindShortestPath(g, originCode, destinationCode):
     oriNode = None
     destNode = None
@@ -201,6 +189,7 @@ def createGraph():
     G=Graph()
     return G
 
+#Eliminació d'un navPoint
 def RemoveNavPoint(g, code):
     node_to_remove = None
     for node in g.navPoints:
@@ -221,6 +210,7 @@ def RemoveNavPoint(g, code):
     
     return True
 
+#Funció de lectura de navPoints
 def ReadNavPoints(g, file):
     g.navPoints.clear()
     try:
@@ -236,6 +226,7 @@ def ReadNavPoints(g, file):
     except Exception as e:
         print(f"ERROR llegint dades del graf: {e}")
 
+#Funció de lectura de segments
 def ReadNavSegments(g, file):
     g.navSegments.clear()
     try:
@@ -261,7 +252,7 @@ def SaveNavSegments(g, filepath="saved_navSegments.txt"):
         for segment in g.navSegments:
             f.write(f"{segment.originNumber} {segment.destinationNumber} {segment.distance}\n" )
 
-
+#Lectura de la introducció per part del usuari d'un nou navPoint
 def LecturaNavPoints(g, datos, ax, canvas):
     vec = datos.split(" ")
     code = vec[0]
@@ -278,7 +269,7 @@ def LecturaNavPoints(g, datos, ax, canvas):
     Plot(g, ax)
     canvas.draw()
 
-
+#Lectura de la introducció per part del usuari d'un nou segment
 def LecturaNavSegments(g, datos, ax, canvas):
     vec = datos.strip().split()
     if len(vec) < 2:

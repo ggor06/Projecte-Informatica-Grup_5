@@ -56,6 +56,7 @@ navpoint_counter = 1
 selected_node_code = None
 
 def updateGraphNodes():
+    global tree_value_var
     ax.clear()
     Plot(G, ax)
     canvas.draw()
@@ -101,7 +102,12 @@ def updatePath():
     if route_nodes:
         path=Path(route_nodes)
         PlotPath(G, path, ax)
+        #Funcionalitat extra 1
         co2_value_var.set(f"{path.co2:.2f} kg")
+        TREE_CO2_PER_YEAR = 22.0
+        num_trees = math.ceil(path.co2 / TREE_CO2_PER_YEAR)
+        tree_value_var.set(f"{num_trees} arbres")
+
     else:
         messagebox.showerror("Error", f"No hi ha ruta entre '{origin}' i '{dest}'")
         canvas.draw()
@@ -393,6 +399,12 @@ lbl_desc = tk.Label(co2_frame,text="Emissions totals:", font=("Helvetica", 10), 
 lbl_desc.grid(row=0, column=0, sticky="w", padx=10, pady=(10,2))
 lbl_value = tk.Label(co2_frame, textvariable=co2_value_var, font=("Helvetica", 16, "bold"), bg=co2_frame.cget("bg"),fg="#2E8B57")
 lbl_value.grid(row=1, column=0, sticky="w", padx=10, pady=(0,10))
+tree_value_var = tk.StringVar(value="0 arbres")
+lbl_trees = tk.Label(co2_frame, text="Arbres necessaris:", font=("Helvetica", 12))
+lbl_trees.grid(row=2, column=0, sticky="w", padx=10, pady=(5,0))
+lbl_tree_value = tk.Label(co2_frame, textvariable=tree_value_var,
+                          font=("Helvetica", 12), fg="#228B22")
+lbl_tree_value.grid(row=2, column=1, sticky="w", padx=10, pady=(5,10))
 
 #Creación de la figura(para poner los grafos)
 fig=Figure(figsize=(5, 4), dpi=100)
