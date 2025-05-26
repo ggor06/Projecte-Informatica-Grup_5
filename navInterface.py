@@ -7,11 +7,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import math
 from functools import partial
-from path import Path, PlotPath
+from path import Path, PlotPath, txtGen
 import matplotlib.backends.backend_tkagg as tkagg
 import sys, subprocess, os
 
 G = createGraph()
+
+path=None
 
 def loadGraphFiles():
     pts_file= filedialog.askopenfilename(title="Selecciona el NAV Points arxiu", filetypes=[("Text Files", "*    .txt"), ("All Files", "*.*")])
@@ -72,7 +74,10 @@ def updateGraphNeighbors():
     canvas.draw()
 
 def updatePath():
+    ax.clear()
+    global path
     if not getattr(G, 'pts_file', None) or not getattr(G, 'seg_file', None) or not getattr(G, 'aer_file', None):
+        messagebox.showerror("Sense dades", "Introdueixi les dades")
         return
 
     ReadNavPoints(G, G.pts_file)
@@ -282,6 +287,12 @@ def AddSegmentUI():
 def calc_co2(path):
     return path.co2
 
+def on_generate(path):
+    if not globals().get('path', None) or not getattr(path, "_co2_computed", False):
+        messagebox.showerror("Sense camí plotat", "Primer fes un camí")
+        return
+    txtGen(path, filename="Resultat.txt")
+
 #Ventana principal
 root = tk.Tk()
 root.geometry("1400x800")
@@ -321,7 +332,7 @@ entryN=tk.Entry(button_inputNode_frame)
 entryN.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 button_inputNode=tk.Button(button_inputNode_frame, text="Afegir node", command=lambda: LecturaNavPoints(G, entryN.get(), ax, canvas))
 button_inputNode.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-
+#Activar nodos
 button_toggle_click = tk.Button(button_inputNode_frame, text="Activa clic per afegir node", command=toggleClick)
 button_toggle_click.grid(row=2, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 button_inputNode_frame.rowconfigure(2, weight=1)
@@ -408,9 +419,17 @@ lbl_value.grid(row=1, column=0, sticky="w", padx=10, pady=(0,10))
 tree_value_var = tk.StringVar(value="0 arbres")
 lbl_trees = tk.Label(co2_frame, text="Arbres necessaris:", font=("Helvetica", 12))
 lbl_trees.grid(row=2, column=0, sticky="w", padx=10, pady=(5,0))
-lbl_tree_value = tk.Label(co2_frame, textvariable=tree_value_var,
-                          font=("Helvetica", 12), fg="#228B22")
+lbl_tree_value = tk.Label(co2_frame, textvariable=tree_value_var, font=("Helvetica", 12), fg="#228B22")
 lbl_tree_value.grid(row=2, column=1, sticky="w", padx=10, pady=(5,10))
+
+#Frame de creación de txt
+txt_frame=tk.LabelFrame(root, text="Creació de navPoints del camí creat", padx=5, pady=5)
+txt_frame.grid(row=3, column=2, padx=5, pady=5, sticky="nsew")
+txt_frame.rowconfigure(0, weight=1)
+txt_frame.columnconfigure(0, weight=1)
+#Botón de creación de txt
+txt_button=tk.Button(txt_frame, text="Generar arxiu .txt dels nodes i CO2", command=lambda: on_generate(path))
+txt_button.grid(row=0, column =0, padx=5, pady=5, sticky="nsew")
 
 #Creación de la figura(para poner los grafos)
 fig=Figure(figsize=(5, 4), dpi=100)

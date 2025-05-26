@@ -54,6 +54,7 @@ def PlotPath(g, path, ax):
         ax.add_patch(arrow)
         seg_cost = distance(n1, n2)
         path.real_cost += seg_cost
+        path._co2_computed = True
 
     # resta de nodes del graf
     for node in g.navPoints:
@@ -69,3 +70,17 @@ def PlotPath(g, path, ax):
     ax.set_ylabel("Latitude")
     ax.relim()
     ax.autoscale_view()
+
+def txtGen(path, filename="Resultat.txt"):
+    if not getattr(path, "_co2_computed", False):
+        print("Error: abans has de cridar PlotPath(g, path, ax) per calcular la petjada de CO₂.")
+        return
+
+    try:
+        with open(filename, 'w') as f:
+            for node in path.nodes:
+                dist = Cost2Node(path, node)
+                co2 = 9.2 * dist
+                f.write(f"{node.code} {node.name} {co2:.2f} kg\n")
+    except Exception as e:
+        print(f"Error generant '{filename}': {e}")
