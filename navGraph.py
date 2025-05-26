@@ -3,6 +3,7 @@ from navPoint import navPoint, AddNeighbor, distance
 import math
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
+from tkinter import messagebox
 
 class Graph:
     def __init__(self):
@@ -254,11 +255,38 @@ def SaveNavSegments(g, filepath="saved_navSegments.txt"):
 
 #Lectura de la introducció per part del usuari d'un nou navPoint
 def LecturaNavPoints(g, datos, ax, canvas):
-    vec = datos.split(" ")
+    vec = datos.strip().split()
+
+    if len(vec) < 4:
+        missatge = (
+            "Entrada buida o incompleta en afegir node manualment.\n"
+            "Format esperat:\n"
+            "    <codi> <nom> <longitud> <latitud>\n"
+            "Exemple:\n"
+            "    N1 Node1 1.95 41.28"
+        )
+        print(missatge)
+        messagebox.showerror("Format incorrecte", missatge)
+        return
+
     code = vec[0]
     name = vec[1]
-    lat = float(vec[3])
-    lon = float(vec[2])
+
+    try:
+        lon = float(vec[2])
+        lat = float(vec[3])
+    except ValueError:
+        missatge = (
+            "[ERROR] Coordenades no vàlides.\n"
+            "Assegura’t que la tercera i quarta posició siguen números decimals.\n"
+            "Format esperat:\n"
+            "    <codi> <nom> <longitud> <latitud>\n"
+            "Exemple:\n"
+            "    N1 Node1 1.95 41.28"
+        )
+        print(missatge)
+        messagebox.showerror("Coordenades incorrectes", missatge)
+        return
 
     p = navPoint()
     p.navPoint(code, name, lat, lon)
