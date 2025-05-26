@@ -214,6 +214,10 @@ def create_navPoint(lat, lon):
 
 #Fet parcialment amb GPT, tutorials de YT i foros(reddit i Stackoverflow) --> És una funció molt complicada de pensar
 def clickRatolí(event, ax, canvas):
+    
+    if event.button != 1 or event.xdata is None or event.ydata is None:
+        return
+    
     global selected_node_code, click_enabled
 
     x_click = event.xdata
@@ -233,9 +237,11 @@ def clickRatolí(event, ax, canvas):
             clicked_code = code
 
     if clicked_code is not None:
-        selected_node_code = clicked_code
-        updateGraphNeighbors()
+        if active_plot == "neighbors":
+            selected_node_code = clicked_code
+            updateGraphNeighbors()
         return
+
 
     # Només afegir si està activat
     if not click_enabled:
